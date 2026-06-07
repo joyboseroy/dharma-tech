@@ -1,94 +1,103 @@
-# Dharma MCP Server
+# Dharma MCP Server + Client
 
-A self-contained MCP server built from scratch using raw JSON-RPC over stdio.
+A self-contained MCP server and command-line client built from scratch.
 
-**No Anthropic SDK. No Claude API. No cloud. Your data stays on your machine.**
+**No LLM SDKs like Gemini or Claude. No cloud. Runs entirely in your WSL terminal.**
 
 Uses only:
 - **Ollama** — local LLM (qwen2.5:7b or any model you have)
-- **FalkorDB** — local graph database (optional)
-- **Standard Python** — json, sys, pathlib
-
-Works with any MCP-compatible client: Claude Desktop, Cursor, or any client that speaks JSON-RPC over stdio.
+- **Standard Python** — json, sys, subprocess, pathlib
 
 ## How it works
 
 ```
-Your MCP client (e.g. Claude Desktop)
-        |
-        | JSON-RPC over stdio
-        v
-dharma_mcp_server.py    ← runs on your machine
-        |
-        | calls locally
-        v
-Ollama (qwen2.5:7b)     ← your local LLM
-data/ JSONL files       ← your local graph data
+WSL terminal
+     |
+     | python mcp/client.py
+     v
+client.py            ← JSON-RPC client (runs in WSL)
+     |
+     | stdin/stdout JSON-RPC (subprocess)
+     v
+dharma_mcp_server.py ← MCP server (runs in WSL)
+     |
+     | calls locally
+     v
+Ollama (qwen2.5:7b)  ← local LLM, no internet
+data/ JSONL files    ← local graph data
 ```
 
-The client (Claude Desktop etc) connects to your server. Your server uses Ollama internally. Nothing goes to the cloud.
+`client.py` starts the server as a subprocess and talks to it via JSON-RPC stdio.
+Everything runs inside WSL. Nothing leaves your machine.
 
 ## Setup
 
 ```bash
-# 1. Install Ollama: https://ollama.com
+# 1. Install Ollama for Linux/WSL: https://ollama.com/download/linux
+curl -fsSL https://ollama.com/install.sh | sh
 ollama pull qwen2.5:7b
-ollama serve   # keep running in a terminal
+ollama serve          # keep running in a separate WSL terminal
 
-# 2. Install Python dependency (only one)
+# 2. Install Python dependencies
 pip install ollama requests
 
-# 3. Test it works
-python dharma_mcp_server.py --cli
+# 3. Run
+cd ~/dharma-tech
+python mcp/client.py  # interactive mode
 ```
 
-## Connect to Claude Desktop
+## Usage
 
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS):
+```bash
+# Interactive — type tool names and parameters
+python mcp/client.py
 
-```json
-{
-  "mcpServers": {
-    "dharma-tech": {
-      "command": "python",
-      "args": ["/absolute/path/to/dharma-tech/mcp/dharma_mcp_server.py"]
-    }
-  }
-}
+# Single commands
+python mcp/client.py query_concept sunyata
+python mcp/client.py find_path anatta sunyata
+python mcp/client.py get_tensions
+python mcp/client.py tradition_compare consciousness
+python mcp/client.py retrieve_passages sunyata 5
+python mcp/client.py verify_quote "The mind is everything"
+python mcp/client.py identify_hindrance "my mind keeps jumping to plans"
+python mcp/client.py find_free_text "Heart Sutra"
+python mcp/client.py daily_reflection
 ```
-
-Windows: `%APPDATA%\Claude\claude_desktop_config.json`
-Linux: `~/.config/claude/claude_desktop_config.json`
-
-Restart Claude Desktop. The tools appear automatically.
 
 ## Environment variables
 
 ```bash
-export DHARMA_MODEL="llama3.2:3b"    # use a different Ollama model
-export OLLAMA_URL="http://localhost:11434"  # default
+export DHARMA_MODEL="llama3.2:3b"        # use a different Ollama model
+export OLLAMA_URL="http://localhost:11434" # default
 ```
 
-## Tools exposed (9)
+## Tools (9)
 
-| Tool | Description | Needs Ollama |
-|------|-------------|:---:|
-| `query_concept` | Get a concept with all philosophical edges | No |
-| `find_path` | Shortest path between two concepts | No |
-| `get_tensions` | All live doctrinal tensions | No |
-| `retrieve_passages` | Text passages for a concept | No |
-| `tradition_compare` | Cross-tradition comparison | No |
-| `identify_hindrance` | Map experience to five hindrances | Yes |
-| `verify_quote` | Check if quote is canonical | Yes |
-| `find_free_text` | Find free sources for any Buddhist text | Optional |
-| `daily_reflection` | Today's passage and lojong slogan | No |
+| Tool | Needs Ollama | Description |
+|------|:---:|-------------|
+| `query_concept` | No | Get a concept with all philosophical edges |
+| `find_path` | No | Shortest path between two concepts |
+| `get_tensions` | No | All live doctrinal tensions |
+| `retrieve_passages` | No | Text passages for a concept |
+| `tradition_compare` | No | Cross-tradition comparison |
+| `identify_hindrance` | Yes | Map meditation experience to five hindrances |
+| `verify_quote` | Yes | Check if a quote is actually canonical |
+| `find_free_text` | Optional | Find free sources for any Buddhist text |
+| `daily_reflection` | No | Today's passage and lojong slogan |
 
-The graph-based tools (query, path, tensions, passages, compare) work entirely from local JSONL files — no Ollama needed.
+The 5 graph tools work from local JSONL files — no Ollama needed at all.
 
-## Test without a client
+## How MCP works (for the curious)
 
-```bash
-python dharma_mcp_server.py --cli
+MCP is JSON-RPC over stdin/stdout. Three message types:
+
 ```
+initialize    → server returns its capabilities
+tools/list    → server returns list of available tools
+tools/call    → server runs a tool and returns the result
+```
+
+`client.py` implements the client side in ~150 lines of standard Python.
+`dharma_mcp_server.py` implements the server side. No SDK, no framework.
 
 → [Back to main repo](../README.md)
