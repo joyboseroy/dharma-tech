@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+.DS_Store
+*.zip
+*.tar.gz
+.idea/
+.vscode/
+*.swp
+emptiness_graph.html
+*.ipynb
+.ipynb_checkpoints/

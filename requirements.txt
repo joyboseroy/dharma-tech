@@ -1,0 +1,20 @@
+# Core
+falkordb>=1.0.0
+ollama>=0.1.0
+requests>=2.28.0
+
+# Optional but recommended
+rich>=13.0.0        # pretty terminal output
+networkx>=3.0       # graph analysis without FalkorDB
+
+# Study tools
+genanki>=0.13.0     # Anki flashcard generation
+
+# Practice tools
+schedule>=1.2.0     # daily sutta scheduler
+
+# Data
+datasets>=2.0.0     # HuggingFace datasets
+
+# Development
+pytest>=7.0.0
