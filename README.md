@@ -28,7 +28,7 @@ A collection of AI tools for Buddhist practitioners, students, scholars, and tea
 
 **For scholars and teachers:** Cross-tradition philosophical comparison grounded in a typed knowledge graph, a Computational Madhyamaka reasoning engine, a passage index of 1,126 text segments across 10 canonical sources.
 
-**For developers:** MCP server that connects all tools to Claude Desktop, shared graph/LLM/RAG infrastructure, a typed philosophical knowledge graph ready to load into FalkorDB or NetworkX.
+**For developers:** MCP server + command-line client running entirely in WSL/Linux terminal. Shared graph/LLM/RAG infrastructure. Typed philosophical knowledge graph ready to load into FalkorDB or NetworkX.
 
 Everything runs locally. No data leaves your machine. No API keys required.
 
@@ -135,34 +135,27 @@ python tools/precept-checker/precept_checker.py "I told a small lie to spare som
 
 ---
 
-### 🔌 MCP Server (Claude Desktop)
+### 🔌 MCP Server + CLI Client
 
-Connect all tools to Claude Desktop with one config change:
+Run all tools from your WSL/Linux terminal using the included client:
 
-```json
-{
-  "mcpServers": {
-    "dharma-tech": {
-      "command": "python",
-      "args": ["/absolute/path/to/dharma-tech/mcp/dharma_mcp_server.py"]
-    }
-  }
-}
+```bash
+# interactive mode
+python mcp/client.py
+
+# single commands
+python mcp/client.py query_concept sunyata
+python mcp/client.py find_path anatta sunyata
+python mcp/client.py get_tensions
+python mcp/client.py tradition_compare consciousness
+python mcp/client.py verify_quote "The mind is everything"
+python mcp/client.py identify_hindrance "mind keeps wandering to plans"
+python mcp/client.py find_free_text "Heart Sutra"
+python mcp/client.py daily_reflection
 ```
 
-Config file location:
-- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
-- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
-- **Linux:** `~/.config/claude/claude_desktop_config.json`
-
-Then ask Claude Desktop:
-- *"What does Madhyamaka say about emptiness compared to Yogacara?"*
-- *"Find free sources for the Bodhicharyavatara"*
-- *"I keep spacing out in meditation — what hindrance is this?"*
-- *"Is it true that the Buddha said 'three things cannot be long hidden'?"*
-- *"Show me today's dharma reflection"*
-
-The MCP server exposes 9 tools from this repo directly as Claude capabilities.
+The client starts the MCP server as a subprocess and communicates via JSON-RPC stdio.
+Everything runs locally on your machine. No external services.
 
 ---
 
@@ -281,7 +274,8 @@ dharma-tech/
 │   └── passage_edges.jsonl # Passage-concept links
 │
 ├── mcp/
-│   └── dharma_mcp_server.py # MCP server for Claude Desktop
+│   ├── dharma_mcp_server.py # MCP server (JSON-RPC stdio)
+│   └── client.py            # command-line MCP client for WSL
 │
 ├── agents/
 │   └── prasanga-engine/    # Computational Madhyamaka (LangGraph)
